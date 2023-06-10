@@ -1,4 +1,4 @@
-export default async function fetchPhoto(q, page) {
+export default async function fetchPhoto(q, page, perPage) {
   const BASE_URL = 'https://pixabay.com/api/';
   const API_KEY = '37130379-4004eb1f0f9bfd5f433c52abe';
   const params = new URLSearchParams({
@@ -7,7 +7,7 @@ export default async function fetchPhoto(q, page) {
     image_type: 'photo',
     orientation: 'horizontal',
     safesearch: true,
-    per_page: 40,
+    per_page: perPage,
     page: page,
   });
 

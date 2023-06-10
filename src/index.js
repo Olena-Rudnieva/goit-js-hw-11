@@ -13,11 +13,11 @@ const galleryEl = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more');
 let query = '';
 let currentPage = 1;
+let perPage = 40;
 galleryEl.style.display = 'flex';
 galleryEl.style.flexWrap = 'wrap';
 galleryEl.style.marginTop = '30px';
 galleryEl.style.gap = '20px';
-loadMoreBtn.style.display = 'none';
 
 formEl.addEventListener('submit', onFormSubmit);
 loadMoreBtn.addEventListener('click', onLoadMore);
@@ -25,27 +25,34 @@ loadMoreBtn.addEventListener('click', onLoadMore);
 function onFormSubmit(evt) {
   evt.preventDefault();
   galleryEl.innerHTML = '';
-  currentPage = 1;
-  loadMoreBtn.style.display = 'none';
+  loadMoreBtn.hidden = true;
   query = evt.currentTarget.elements.searchQuery.value;
-  fetchPhoto(query, currentPage)
+    if (!query) {    
+      Notiflix.Notify.failure(
+        'What are you looking for?'
+      );
+    return;
+  }
+  fetchPhoto(query, currentPage, perPage)
     .then(option => {
       if (option.hits.length === 0) {
         Notiflix.Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       } else {
-        currentPage += 1;
         option.hits.map(value => renderPhoto(value));
-        loadMoreBtn.style.display = 'block';
+        if (option.totalHits > perPage) {
+          loadMoreBtn.hidden = false;
+        }
+        currentPage += 1;
       }
     })
     .catch(error => {
       console.log(error);
     })
-      .finally(() => {
-          formEl.reset();
-      });
+    .finally(() => {
+      formEl.reset();
+    });
 }
 
 // axios.get('https://pixabay.com/api/?key=37130379-4004eb1f0f9bfd5f433c52abe&q=yellow+flowers&image_type=photo&orientation=horizontal&safesearch=true').then(data => console.log(data))
@@ -74,10 +81,17 @@ function renderPhoto(obj) {
 }
 
 function onLoadMore() {
-  fetchPhoto(query, currentPage)
+  fetchPhoto(query, currentPage, perPage)
     .then(option => {
       currentPage += 1;
       option.hits.map(value => renderPhoto(value));
+      const totalPages = option.totalHits / perPage;
+      if (totalPages < currentPage) {
+        loadMoreBtn.hidden = true;
+        Notiflix.Notify.failure(
+          "We're sorry, but you've reached the end of search results."
+        );
+      }
     })
     .catch(error => {
       console.log(error);
