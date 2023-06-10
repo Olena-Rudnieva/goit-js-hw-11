@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export default async function fetchPhoto(q, page, perPage) {
   const BASE_URL = 'https://pixabay.com/api/';
   const API_KEY = '37130379-4004eb1f0f9bfd5f433c52abe';
@@ -11,12 +13,6 @@ export default async function fetchPhoto(q, page, perPage) {
     page: page,
   });
 
-   const response = await fetch(
-    `${BASE_URL}?${params}`
-  );
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  return response.json();
+  const response = await axios.get(`${BASE_URL}?${params}`);
+  return response.data;
 }

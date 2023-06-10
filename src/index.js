@@ -1,5 +1,4 @@
 import fetchPhoto from './api-service';
-import axios from 'axios';
 import Notiflix from 'notiflix';
 
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
@@ -27,10 +26,8 @@ function onFormSubmit(evt) {
   galleryEl.innerHTML = '';
   loadMoreBtn.hidden = true;
   query = evt.currentTarget.elements.searchQuery.value;
-    if (!query) {    
-      Notiflix.Notify.failure(
-        'What are you looking for?'
-      );
+  if (!query) {
+    Notiflix.Notify.failure('What are you looking for?');
     return;
   }
   fetchPhoto(query, currentPage, perPage)
@@ -54,8 +51,6 @@ function onFormSubmit(evt) {
       formEl.reset();
     });
 }
-
-// axios.get('https://pixabay.com/api/?key=37130379-4004eb1f0f9bfd5f433c52abe&q=yellow+flowers&image_type=photo&orientation=horizontal&safesearch=true').then(data => console.log(data))
 
 function renderPhoto(obj) {
   const { previewURL, tags, likes, views, comments, downloads } = obj;
