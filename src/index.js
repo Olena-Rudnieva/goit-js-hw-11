@@ -29,39 +29,12 @@ let options = {
 
 let observer = new IntersectionObserver(onObserve, options);
 
-function onObserve(entries, observer) {
-  console.log(currentPage);
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      fetchPhoto(query, currentPage, perPage)
-        .then(option => {
-          option.hits.map(value => renderPhoto(value));
-          lightbox.refresh();
-          currentPage += 1;
-          console.log(currentPage);
-          const loadImg = currentPage * perPage;
-          if (loadImg > option.totalHits) {
-            console.log(option.totalHits);
-            console.log(loadImg);
-            observer.unobserve(target);
-            Notiflix.Notify.failure(
-              "We're sorry, but you've reached the end of search results."
-            );
-          }
-        })
-        .catch(error => {
-          console.log(error);
-        });
-    }
-  });
-}
-
 function onFormSubmit(evt) {
   evt.preventDefault();
   galleryEl.innerHTML = '';
-  loadMoreBtn.hidden = true;
+  //   loadMoreBtn.hidden = true;
   query = evt.currentTarget.elements.searchQuery.value;
-  if (!query) {
+  if (query === '' || query === ' ') {
     Notiflix.Notify.failure('What are you looking for?');
     return;
   }
@@ -81,7 +54,6 @@ function onFormSubmit(evt) {
         // if (option.totalHits > perPage) {
         //   loadMoreBtn.hidden = false;
         // }
-        currentPage += 1;
       }
     })
     .catch(error => {
@@ -98,7 +70,7 @@ function renderPhoto(obj) {
   const markup = `
     <div class="photo-card"> 
   <a class="gallery__link" href="${largeImageURL}">
-       <img src="${previewURL}" alt="${tags}" loading="lazy" />
+       <img src="${previewURL}" alt="${tags}" loading="lazy" height = "100"/>
    </a>
   <div class="info">
     <p class="info-item">
@@ -118,20 +90,48 @@ function renderPhoto(obj) {
   galleryEl.insertAdjacentHTML('beforeend', markup);
 }
 
+// Код для Infinity scroll
+
+function onObserve(entries, observer) {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      currentPage += 1;
+      fetchPhoto(query, currentPage, perPage)
+        .then(option => {
+          option.hits.map(value => renderPhoto(value));
+          lightbox.refresh();          
+          const loadImg = currentPage * perPage;
+          if (loadImg > option.totalHits) {
+            observer.unobserve(target);
+            Notiflix.Notify.failure(
+              "We're sorry, but you've reached the end of search results."
+            );
+          }
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  });
+}
+
+// Код при використанні кнопки Load more
+
 // function onLoadMore() {
+//   currentPage += 1;
 //   fetchPhoto(query, currentPage, perPage)
 //     .then(option => {
-//       currentPage += 1;
 //       option.hits.map(value => renderPhoto(value));
-//       //   observer.observe(target);
 //       lightbox.refresh();
-//       const totalPages = option.totalHits / perPage;
-//       if (totalPages < currentPage) {
+//       const loadImg = currentPage * perPage;
+//       if (loadImg > option.totalHits) {
 //         loadMoreBtn.hidden = true;
 //         Notiflix.Notify.failure(
 //           "We're sorry, but you've reached the end of search results."
 //         );
 //       }
 //     })
-//     .catch(error => {console.log(error)});
+//     .catch(error => {
+//       console.log(error);
+//     });
 // }
