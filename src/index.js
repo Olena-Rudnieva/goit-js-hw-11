@@ -1,13 +1,9 @@
 import fetchPhoto from './api-service';
+import renderPhoto from './render-photo';
 import Notiflix from 'notiflix';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import { Report } from 'notiflix/build/notiflix-report-aio';
-import { Confirm } from 'notiflix/build/notiflix-confirm-aio';
-import { Loading } from 'notiflix/build/notiflix-loading-aio';
-import { Block } from 'notiflix/build/notiflix-block-aio';
 
 const formEl = document.querySelector('.search-form');
 const galleryEl = document.querySelector('.gallery');
@@ -32,8 +28,10 @@ let observer = new IntersectionObserver(onObserve, options);
 function onFormSubmit(evt) {
   evt.preventDefault();
   galleryEl.innerHTML = '';
+  observer.unobserve(target);
   //   loadMoreBtn.hidden = true;
   query = evt.currentTarget.elements.searchQuery.value;
+  currentPage = 1;
   if (query === '' || query === ' ') {
     Notiflix.Notify.failure('What are you looking for?');
     return;
@@ -45,7 +43,9 @@ function onFormSubmit(evt) {
           'Sorry, there are no images matching your search query. Please try again.'
         );
       } else {
-        option.hits.map(value => renderPhoto(value));
+        option.hits.map(value =>
+          galleryEl.insertAdjacentHTML('beforeend', renderPhoto(value))
+        );
         observer.observe(target);
         lightbox.refresh();
         Notiflix.Notify.success(
@@ -64,32 +64,6 @@ function onFormSubmit(evt) {
     });
 }
 
-function renderPhoto(obj) {
-  const { previewURL, tags, likes, views, comments, downloads, largeImageURL } =
-    obj;
-  const markup = `
-    <div class="photo-card"> 
-  <a class="gallery__link" href="${largeImageURL}">
-       <img src="${previewURL}" alt="${tags}" loading="lazy" height = "100"/>
-   </a>
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b> <span>${likes}</span>
-    </p>
-    <p class="info-item">
-      <b>Views</b> <span>${views}</span>
-    </p>
-    <p class="info-item">
-      <b>Comments</b> <span>${comments}</span>
-    </p>
-    <p class="info-item">
-      <b>Downloads</b> <span>${downloads}</span>
-    </p>
-  </div>
-</div>`;
-  galleryEl.insertAdjacentHTML('beforeend', markup);
-}
-
 // Код для Infinity scroll
 
 function onObserve(entries, observer) {
@@ -98,8 +72,10 @@ function onObserve(entries, observer) {
       currentPage += 1;
       fetchPhoto(query, currentPage, perPage)
         .then(option => {
-          option.hits.map(value => renderPhoto(value));
-          lightbox.refresh();          
+          option.hits.map(value =>
+            galleryEl.insertAdjacentHTML('beforeend', renderPhoto(value))
+          );
+          lightbox.refresh();
           const loadImg = currentPage * perPage;
           if (loadImg > option.totalHits) {
             observer.unobserve(target);
